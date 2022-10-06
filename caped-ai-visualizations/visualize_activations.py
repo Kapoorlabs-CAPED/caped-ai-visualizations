@@ -6,8 +6,8 @@ from oneat.NEATUtils.utils import load_json, normalizeFloatZeroOne
 from keras import models 
 from keras.models import load_model
 from tifffile import imread
-
-
+import napari 
+from oneat.NEATModels.nets import Concat
 class visualize_activations(object):
     
     def __init__(self,config, catconfig, cordconfig, model_dir, model_name, imagename, oneat_vollnet = False,
@@ -37,6 +37,9 @@ class visualize_activations(object):
         self.key_cord = self.cordconfig
         self.categories = len(self.catconfig)
         self.key_categories = self.catconfig
+        self.image = imread(imagename).astype(self.dtype)
+        self.viewer = napari.Viewer()   
+        self.all_max_activations = []
         if self.oneat_vollnet or self.oneat_lstmnet or self.oneat_cnnnet or self.oneat_staticnet: 
                 self.config = load_json(os.path.join(self.model_dir, self.model_name) + '_Parameter.json')
                 
@@ -73,3 +76,65 @@ class visualize_activations(object):
                 if self.multievent == False:
                     self.entropy = 'notbinary' 
         
+        
+    def _load_model_losses(self):
+        
+        if self.normalize: 
+            self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
+            
+        if self.oneat_vollnet: 
+            
+            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1])  
+            self.yololoss = volume_yolo_loss(self.categories, self.gridx, self.gridy, self.gridz, self.nboxes,
+                                            self.box_vector, self.entropy)
+        
+        if self.oneat_tresnet:
+            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+            self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
+                                                        self.entropy)
+        
+        if self.oneat_lrnet:
+            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+            self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes,
+                                          self.box_vector, self.entropy)
+
+        if self.oneat_resnet:
+            self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
+            self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
+                                                        self.entropy)
+
+        
+        
+         
+        
+        if self.oneat_vollnet or self.oneat_tresnet or self.oneat_lrnet or self.oneat_resnet:
+                self.model = load_model(os.path.join(self.model_dir, self.model_name) + '.h5',
+                                custom_objects={'loss': self.yololoss, 'Concat': Concat}) 
+        elif self.voll_starnet_2D:
+                if len(self.image.shape) == 4:
+                    self.image = self.image[0,0,:,:]
+                if len(self.image.shape) == 3:
+                    self.image = self.image[0,:,:]     
+                self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
+                self.model =  StarDist2D(None, name=self.model_name, basedir=self.model_dir)._build()         
+        elif self.voll_starnet_3D:
+                if len(self.image.shape) == 4:
+                    self.image = self.image[0,:,:,:]
+                self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+                self.model =  StarDist3D(None, name=self.model_name, basedir=self.model_dir)._build()     
+        elif self.voll_unet:
+                if len(self.image.shape) == 4:
+                    self.image = self.image[0,:,:,:]
+                if len(self.image.shape) >=3:
+                     self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+                else:
+                     self.pad_width = (self.image.shape[-2], self.image.shape[-1])      
+                self.model =  UNET(None, name=self.model_name, basedir=self.model_dir)._build()  
+        elif self.voll_care:
+                if len(self.image.shape) == 4:
+                    self.image = self.image[0,:,:,:]
+                if len(self.image.shape) >=3:
+                     self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+                else:
+                     self.pad_width = (self.image.shape[-2], self.image.shape[-1])
+                self.model =  CARE(None, name=self.model_name, basedir=self.model_dir)._build()
