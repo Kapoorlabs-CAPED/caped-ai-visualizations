@@ -1,6 +1,8 @@
 import os
 from oneat.NEATModels.loss import volume_yolo_loss, static_yolo_loss, dynamic_yolo_loss
 from oneat.NEATModels.neat_vollnet import NEATVollNet
+from oneat.NEATModels.neat_lstm import NEATLRNet
+from oneat.NEATModels.neat_dynamic_resnet import NEATTResNet
 from vollseg import CARE, UNET, StarDist2D, StarDist3D, MASKUNET
 import numpy as np
 from oneat.NEATUtils.utils import load_json, normalizeFloatZeroOne
@@ -10,17 +12,28 @@ from tifffile import imread
 import napari 
 from oneat.NEATModels.nets import Concat
 import tensorflow as tf
+import napari
+from .visualize_action_volume_boxes import VisualizeBoxes
 class visualize_activations(object):
     
-    def __init__(self,config, catconfig, cordconfig, model_dir, model_name, imagename, oneat_vollnet = False,
+    def __init__(self, viewer: napari.Viewer, config: dict, catconfig: dict, cordconfig: dict, model_dir: str, model_name: str, imagename: str,
+                 segdir = None, oneat_vollnet = False, start_project_mid = 4, end_project_mid = 1,
                  oneat_lrnet = False, oneat_tresnet = False, oneat_resnet = False, voll_starnet_2D = False,
                  voll_starnet_3D = False, voll_unet = False, voll_care = False, layer_viz_start = None,
+                 event_threshold = 0.9, event_confidence = 0.9, nms_function = 'iou',
                  layer_viz_end = None, dtype = np.uint8, n_tiles = (1,1,1), normalize = True):
         
+        self.viewer= viewer
         self.config = config 
         self.model_dir = model_dir 
         self.model_name = model_name
         self.imagename = imagename 
+        self.segdir = segdir
+        self.start_project_mid = start_project_mid
+        self.end_project_mid = end_project_mid
+        self.event_threshold = event_threshold 
+        self.event_confidence = event_confidence
+        self.nms_function = nms_function  
         self.oneat_vollnet = oneat_vollnet 
         self.oneat_lrnet = oneat_lrnet 
         self.oneat_tresnet = oneat_tresnet 
@@ -79,8 +92,59 @@ class visualize_activations(object):
                     self.entropy = 'notbinary' 
         
     
+    def _draw_boxes(self):    
         
-    def _load_model_losses(self):
+        viz_box = VisualizeBoxes(viewer = self.viewer, key_categories = self.key_categories, event_threshold = self.event_threshold)
+        
+        if self.oneat_vollnet:
+             self.model = NEATVollNet(None, model_dir = self.model_dir, model_name = self.model_name, catconfig = self.catconfig, cordconfig = self.cordconfig)
+             marker_tree =  self.model.get_markers(self.imagename, self.segdir)
+                                   
+             self.model.predict(self.imagename,
+                           n_tiles = self.n_tiles, 
+                           event_threshold = self.event_threshold, 
+                           event_confidence = self.event_confidence,
+                           marker_tree = marker_tree, 
+                           nms_function = self.nms_function,
+                           normalize = self.normalize)
+             viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes)
+             
+        if self.oneat_lrnet:
+            self.model = NEATLRNet(None, model_dir = self.model_dir, model_name = self.model_name, catconfig = self.catconfig, cordconfig = self.cordconfig)     
+            marker_tree =  self.model.get_markers(self.imagename, 
+                                                self.segdir,
+                                                start_project_mid = self.start_project_mid,
+                                                end_project_mid = self.end_project_mid,  
+                                                ) 
+            self.model.predict(self.imagename,
+                               n_tiles = self.n_tiles,
+                               event_threshold = self.event_threshold,
+                               event_confidence = self.event_confidence,
+                               marker_tree = marker_tree,
+                               nms_function = self.nms_function,
+                               start_project_mid = self.start_project_mid,
+                               end_project_mid = self.end_project_mid,
+                               normalize = self.normalize)
+            viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
+            
+        if self.oneat_tresnet:
+            self.model = NEATTResNet(None, model_dir = self.model_dir, model_name = self.model_name, catconfig = self.catconfig, cordconfig = self.cordconfig)    
+            marker_tree = self.model.get_markers( self.imagename, 
+                                                  self.segdir, 
+                                                  start_project_mid = self.start_project_mid,
+                                                  end_project_mid = self.end_project_mid)
+            self.model.predict(self.imagename,
+                                n_tiles = self.n_tiles,
+                                event_threshold = self.event_threshold,
+                                event_confidence = self.event_confidence,
+                                marker_tree = marker_tree,
+                                nms_function = self.nms_function,
+                                stert_project_mid = self.start_project_mid,
+                                end_project_mid = self.end_project_mid,
+                                normalze = self.normalize)
+            viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
+             
+    def _load_model_loss(self):
         
         if self.normalize: 
             self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
@@ -111,10 +175,7 @@ class visualize_activations(object):
         
          
         
-        
-        if self.oneat_vollnet:
-             self.model = NEATVollNet(None, model_dir = self.model_dir, model_name = self.model_name)
-             self.prediction_oneat = VollN
+                    
                     
         elif self.voll_starnet_2D:
                 if len(self.image.shape) == 4:
