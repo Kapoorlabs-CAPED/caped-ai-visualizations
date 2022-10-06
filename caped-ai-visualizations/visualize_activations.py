@@ -92,7 +92,67 @@ class visualize_activations(object):
                 if self.multievent == False:
                     self.entropy = 'notbinary' 
         
-    
+    def _load_model_loss(self):
+        
+        if self.normalize: 
+            self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
+        self.image = np.expand_dims(self.image, 0)    
+            
+        if self.oneat_vollnet: 
+            
+            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1])  
+            self.yololoss = volume_yolo_loss(self.categories, self.gridx, self.gridy, self.gridz, self.nboxes,
+                                            self.box_vector, self.entropy)
+        
+        if self.oneat_tresnet:
+            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+            self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
+                                                        self.entropy)
+        
+        if self.oneat_lrnet:
+            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+            self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes,
+                                          self.box_vector, self.entropy)
+
+        if self.oneat_resnet:
+            self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
+            self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
+                                                        self.entropy)
+
+        elif self.voll_starnet_2D:
+                if len(self.image.shape) == 4:
+                    self.image = self.image[0,0,:,:]
+                if len(self.image.shape) == 3:
+                    self.image = self.image[0,:,:]     
+                self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
+                self.model =  StarDist2D(None, name=self.model_name, basedir=self.model_dir)._build()
+                self.prediction_star = self.model.predict(self.image)         
+        elif self.voll_starnet_3D:
+                if len(self.image.shape) == 4:
+                    self.image = self.image[0,:,:,:]
+                self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+                self.model =  StarDist3D(None, name=self.model_name, basedir=self.model_dir)._build()
+                self.prediction_star = self.model.predict(self.image)     
+        elif self.voll_unet:
+                if len(self.image.shape) == 4:
+                    self.image = self.image[0,:,:,:]
+                if len(self.image.shape) >=3:
+                     self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+                else:
+                     self.pad_width = (self.image.shape[-2], self.image.shape[-1])      
+                self.model =  UNET(None, name=self.model_name, basedir=self.model_dir)._build()  
+                self.prediction_unet = self.model.predict(self.image)
+        elif self.voll_care:
+                if len(self.image.shape) == 4:
+                    self.image = self.image[0,:,:,:]
+                if len(self.image.shape) >=3:
+                     self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+                else:
+                     self.pad_width = (self.image.shape[-2], self.image.shape[-1])
+                self.model =  CARE(None, name=self.model_name, basedir=self.model_dir)._build()
+                self.prediction_care = self.model.predict(self.image)
+                
+                
     def _draw_boxes(self):    
         
         viz_box = VisualizeBoxes(viewer = self.viewer, key_categories = self.key_categories, event_threshold = self.event_threshold)
@@ -155,71 +215,7 @@ class visualize_activations(object):
                                )
             viz_box.create_area_boxes(iou_classedboxes = self.model.iou_classedboxes)           
               
-    def _load_model_loss(self):
-        
-        if self.normalize: 
-            self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
-        self.image = np.expand_dims(self.image, 0)    
-            
-        if self.oneat_vollnet: 
-            
-            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1])  
-            self.yololoss = volume_yolo_loss(self.categories, self.gridx, self.gridy, self.gridz, self.nboxes,
-                                            self.box_vector, self.entropy)
-        
-        if self.oneat_tresnet:
-            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
-            self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
-                                                        self.entropy)
-        
-        if self.oneat_lrnet:
-            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
-            self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes,
-                                          self.box_vector, self.entropy)
-
-        if self.oneat_resnet:
-            self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
-            self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
-                                                        self.entropy)
-
-        
-        
-         
-        
-                    
-                    
-        elif self.voll_starnet_2D:
-                if len(self.image.shape) == 4:
-                    self.image = self.image[0,0,:,:]
-                if len(self.image.shape) == 3:
-                    self.image = self.image[0,:,:]     
-                self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
-                self.model =  StarDist2D(None, name=self.model_name, basedir=self.model_dir)._build()
-                self.prediction_star = self.model.predict(self.image)         
-        elif self.voll_starnet_3D:
-                if len(self.image.shape) == 4:
-                    self.image = self.image[0,:,:,:]
-                self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
-                self.model =  StarDist3D(None, name=self.model_name, basedir=self.model_dir)._build()
-                self.prediction_star = self.model.predict(self.image)     
-        elif self.voll_unet:
-                if len(self.image.shape) == 4:
-                    self.image = self.image[0,:,:,:]
-                if len(self.image.shape) >=3:
-                     self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
-                else:
-                     self.pad_width = (self.image.shape[-2], self.image.shape[-1])      
-                self.model =  UNET(None, name=self.model_name, basedir=self.model_dir)._build()  
-                self.prediction_unet = self.model.predict(self.image)
-        elif self.voll_care:
-                if len(self.image.shape) == 4:
-                    self.image = self.image[0,:,:,:]
-                if len(self.image.shape) >=3:
-                     self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
-                else:
-                     self.pad_width = (self.image.shape[-2], self.image.shape[-1])
-                self.model =  CARE(None, name=self.model_name, basedir=self.model_dir)._build()
-                self.prediction_care = self.model.predict(self.image)
+    
                 
                 
     def _activations_predictions(self):
@@ -237,11 +233,24 @@ class visualize_activations(object):
          
             
         layer_outputs = [layer.output for layer in self.model.layers[self.layer_viz_start:self.layer_viz_end]]
-        self.activation_model = models.Model(inputs= self.model.input, outputs=layer_outputs)   
+        self.activation_model = models.Model(inputs = self.model.input, outputs=layer_outputs)   
          
         if self.oneat_vollnet:
              
             self.image = tf.reshape(self.image, (self.image.shape[0], self.image.shape[2], self.image.shape[3],self.image.shape[4], self.image.shape[1]))
                  
         self.activations = self.activation_model.predict(self.smallimage)
-                 
+           
+    def VizualizeActivations(self):
+        
+        self._load_model_loss()
+        self._activations_predictions()
+        self._draw_boxes()
+        
+        self.viewer.add_image(self.image, name= 'Image', blending= 'additive' )
+        for count, activation in enumerate(self.activations):
+            
+             max_activation = np.sum(activation, axis = -1)
+             max_activation = normalizeFloatZeroOne(max_activation, 1, 99.8, dtype = self.dtype)             
+             self.viewer.add_image(max_activation, name= 'Activation' + str(count), blending= 'additive', colormap='inferno' )
+        napari.run()
