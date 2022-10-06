@@ -1,5 +1,6 @@
 import os
 from oneat.NEATModels.loss import volume_yolo_loss, static_yolo_loss, dynamic_yolo_loss
+from oneat.NEATModels.neat_vollnet import NEATVollNet
 from vollseg import CARE, UNET, StarDist2D, StarDist3D, MASKUNET
 import numpy as np
 from oneat.NEATUtils.utils import load_json, normalizeFloatZeroOne
@@ -83,6 +84,7 @@ class visualize_activations(object):
         
         if self.normalize: 
             self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
+        self.image = np.expand_dims(self.image, 0)    
             
         if self.oneat_vollnet: 
             
@@ -109,21 +111,25 @@ class visualize_activations(object):
         
          
         
-        if self.oneat_vollnet or self.oneat_tresnet or self.oneat_lrnet or self.oneat_resnet:
-                self.model = load_model(os.path.join(self.model_dir, self.model_name) + '.h5',
-                                custom_objects={'loss': self.yololoss, 'Concat': Concat}) 
+        
+        if self.oneat_vollnet:
+             self.model = NEATVollNet(None, model_dir = self.model_dir, model_name = self.model_name)
+             self.prediction_oneat = VollN
+                    
         elif self.voll_starnet_2D:
                 if len(self.image.shape) == 4:
                     self.image = self.image[0,0,:,:]
                 if len(self.image.shape) == 3:
                     self.image = self.image[0,:,:]     
                 self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
-                self.model =  StarDist2D(None, name=self.model_name, basedir=self.model_dir)._build()         
+                self.model =  StarDist2D(None, name=self.model_name, basedir=self.model_dir)._build()
+                self.prediction_star = self.model.predict(self.image)         
         elif self.voll_starnet_3D:
                 if len(self.image.shape) == 4:
                     self.image = self.image[0,:,:,:]
                 self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
-                self.model =  StarDist3D(None, name=self.model_name, basedir=self.model_dir)._build()     
+                self.model =  StarDist3D(None, name=self.model_name, basedir=self.model_dir)._build()
+                self.prediction_star = self.model.predict(self.image)     
         elif self.voll_unet:
                 if len(self.image.shape) == 4:
                     self.image = self.image[0,:,:,:]
@@ -132,6 +138,7 @@ class visualize_activations(object):
                 else:
                      self.pad_width = (self.image.shape[-2], self.image.shape[-1])      
                 self.model =  UNET(None, name=self.model_name, basedir=self.model_dir)._build()  
+                self.prediction_unet = self.model.predict(self.image)
         elif self.voll_care:
                 if len(self.image.shape) == 4:
                     self.image = self.image[0,:,:,:]
@@ -140,6 +147,7 @@ class visualize_activations(object):
                 else:
                      self.pad_width = (self.image.shape[-2], self.image.shape[-1])
                 self.model =  CARE(None, name=self.model_name, basedir=self.model_dir)._build()
+                self.prediction_care = self.model.predict(self.image)
                 
                 
     def _activations_predictions(self):
@@ -155,7 +163,7 @@ class visualize_activations(object):
         if self.layer_viz_end < 0:
              self.layer_viz_end = len(self.activations) + self.layer_viz_end
          
-        self.image = np.expand_dims(self.image, 0)    
+            
         layer_outputs = [layer.output for layer in self.model.layers[self.layer_viz_start:self.layer_viz_end]]
         self.activation_model = models.Model(inputs= self.model.input, outputs=layer_outputs)   
          
@@ -164,4 +172,4 @@ class visualize_activations(object):
             self.image = tf.reshape(self.image, (self.image.shape[0], self.image.shape[2], self.image.shape[3],self.image.shape[4], self.image.shape[1]))
                  
         self.activations = self.activation_model.predict(self.smallimage)
-        self.prediction = self.model.predict(self.smallimage)         
+                 
