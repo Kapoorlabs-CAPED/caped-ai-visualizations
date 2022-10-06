@@ -8,6 +8,7 @@ from keras.models import load_model
 from tifffile import imread
 import napari 
 from oneat.NEATModels.nets import Concat
+import tensorflow as tf
 class visualize_activations(object):
     
     def __init__(self,config, catconfig, cordconfig, model_dir, model_name, imagename, oneat_vollnet = False,
@@ -25,7 +26,7 @@ class visualize_activations(object):
         self.oneat_resnet = oneat_resnet
         self.voll_starnet_2D = voll_starnet_2D 
         self.voll_starnet_3D = voll_starnet_3D
-        self.voll_net = voll_unet 
+        self.voll_unet = voll_unet 
         self.voll_care = voll_care 
         self.catconfig = catconfig 
         self.cordconfig = cordconfig 
@@ -76,6 +77,7 @@ class visualize_activations(object):
                 if self.multievent == False:
                     self.entropy = 'notbinary' 
         
+    
         
     def _load_model_losses(self):
         
@@ -138,3 +140,28 @@ class visualize_activations(object):
                 else:
                      self.pad_width = (self.image.shape[-2], self.image.shape[-1])
                 self.model =  CARE(None, name=self.model_name, basedir=self.model_dir)._build()
+                
+                
+    def _activations_predictions(self):
+         
+         
+        if self.layer_viz_start is None:
+            self.layer_viz_start = 0 
+        if self.layer_viz_end is None:
+            self.layer_viz_end = len(self.activations)
+                
+        if self.layer_viz_start < 0:
+             self.layer_viz_start = len(self.activations) + self.layer_viz_start    
+        if self.layer_viz_end < 0:
+             self.layer_viz_end = len(self.activations) + self.layer_viz_end
+         
+        self.image = np.expand_dims(self.image, 0)    
+        layer_outputs = [layer.output for layer in self.model.layers[self.layer_viz_start:self.layer_viz_end]]
+        self.activation_model = models.Model(inputs= self.model.input, outputs=layer_outputs)   
+         
+        if self.oneat_vollnet:
+             
+            self.image = tf.reshape(self.image, (self.image.shape[0], self.image.shape[2], self.image.shape[3],self.image.shape[4], self.image.shape[1]))
+                 
+        self.activations = self.activation_model.predict(self.smallimage)
+        self.prediction = self.model.predict(self.smallimage)         
