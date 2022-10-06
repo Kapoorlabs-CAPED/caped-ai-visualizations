@@ -17,7 +17,7 @@ setup(
     url = 'https://github.com/Kapoorlabs-CAPED/caped-ai-visualizations/',
     long_description = long_description, 
     long_description_content_type = 'text/markdown',
-    install_requires = [ 'oneat',
+    install_requires = [ 'caped-ai',
                         ],
     packages = find_packages(),
     classifiers=[
