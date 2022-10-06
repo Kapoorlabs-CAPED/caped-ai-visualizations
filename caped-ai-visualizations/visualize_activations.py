@@ -3,6 +3,7 @@ from oneat.NEATModels.loss import volume_yolo_loss, static_yolo_loss, dynamic_yo
 from oneat.NEATModels.neat_vollnet import NEATVollNet
 from oneat.NEATModels.neat_lstm import NEATLRNet
 from oneat.NEATModels.neat_dynamic_resnet import NEATTResNet
+from oneat.NEATModels.neat_static_resnet import NEATResNet
 from vollseg import CARE, UNET, StarDist2D, StarDist3D, MASKUNET
 import numpy as np
 from oneat.NEATUtils.utils import load_json, normalizeFloatZeroOne
@@ -143,7 +144,17 @@ class visualize_activations(object):
                                 end_project_mid = self.end_project_mid,
                                 normalze = self.normalize)
             viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
-             
+            
+        if self.oneat_resnet:
+            self.model =  NEATResNet(None, model_dir = self.model_dir, model_name = self.model_name, catconfig = self.catconfig, cordconfig = self.cordconfig)       
+            
+            self.model.predict(self.imagename,
+                               event_threshold = self.event_threshold,
+                               event_confidence = self.event_confidence,
+                               n_tiles = self.n_tiles
+                               )
+            viz_box.create_area_boxes(iou_classedboxes = self.model.iou_classedboxes)           
+              
     def _load_model_loss(self):
         
         if self.normalize: 
