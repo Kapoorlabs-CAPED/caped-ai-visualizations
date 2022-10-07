@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: caped-ai-visualizations
+Version: 1.0.0
+Summary: Visualization toolkit for oneat bounding boxes, activation functions, vollseg visualization
+Home-page: https://github.com/Kapoorlabs-CAPED/caped-ai-visualizations/
+Author: Varun Kapoor
+Author-email: randomaccessiblekapoor@gmail.com
+Classifier: Development Status :: 3 - Alpha
+Classifier: Natural Language :: English
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.9
+Description-Content-Type: text/markdown
+
+# caped-ai-visualizations
+Visualization library for bounding boxes, activation maps and napari widgets for oneat visualization

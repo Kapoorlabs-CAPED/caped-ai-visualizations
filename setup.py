@@ -5,7 +5,7 @@ _dir = path.dirname(__file__)
 
 with open('README.md') as f:
     long_description = f.read()
-with open(path.join(_dir,'caped-ai-visualizations','_version.py') , encoding='utf-8') as f:
+with open(path.join(_dir,'caped_ai_visualizations','_version.py') , encoding='utf-8') as f:
     exec(f.read())
     
 setup(
