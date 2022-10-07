@@ -1,1 +1,1 @@
-caped-ai-visualizations
+caped_ai_visualizations

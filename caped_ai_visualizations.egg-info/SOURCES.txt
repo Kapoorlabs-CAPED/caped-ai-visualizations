@@ -1,9 +1,9 @@
 README.md
 setup.py
-caped-ai-visualizations/__init__.py
-caped-ai-visualizations/_version.py
-caped-ai-visualizations/visualize_action_volume_boxes.py
-caped-ai-visualizations/visualize_activations.py
+caped_ai_visualizations/__init__.py
+caped_ai_visualizations/_version.py
+caped_ai_visualizations/visualize_action_volume_boxes.py
+caped_ai_visualizations/visualize_activations.py
 caped_ai_visualizations.egg-info/PKG-INFO
 caped_ai_visualizations.egg-info/SOURCES.txt
 caped_ai_visualizations.egg-info/dependency_links.txt
