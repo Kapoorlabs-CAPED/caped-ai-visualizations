@@ -1,7 +1,8 @@
 import os
 from oneat.NEATModels.loss import volume_yolo_loss, static_yolo_loss, dynamic_yolo_loss
-from oneat.NEATModels.neat_vollnet import NEATVollNet
+from oneat.NEATModels.neat_vollnet import NEATVollNet, CreateVolume
 from oneat.NEATModels.neat_lstm import NEATLRNet
+
 from oneat.NEATModels.neat_dynamic_resnet import NEATTResNet
 from oneat.NEATModels.neat_static_resnet import NEATResNet
 from vollseg import CARE, UNET, StarDist2D, StarDist3D, MASKUNET
@@ -54,7 +55,7 @@ class visualize_activations(object):
         self.key_categories = self.catconfig
         self.image = imread(imagename).astype(self.dtype)
         self.viewer = napari.Viewer()   
-        self.all_max_activations = []
+        self.all_max_activations = {}
         if self.oneat_vollnet or self.oneat_lrnet or self.oneat_tresnet or self.oneat_resnet: 
                 self.config = load_json(os.path.join(self.model_dir, self.model_name) + '_Parameter.json')
                 
@@ -241,7 +242,13 @@ class visualize_activations(object):
              
             self.image = tf.reshape(self.image, (self.image.shape[0], self.image.shape[2], self.image.shape[3],self.image.shape[4], self.image.shape[1]))
                  
-        self.activations = self.activation_model.predict(self.image)
+        for inputtime in (range(0, self.image.shape[0])):
+                    if inputtime < self.image.shape[0] - self.imaget and inputtime > int(self.imaget)//2:
+                                count = count + 1
+                                      
+                                smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime)         
+                                self.activations = self.activation_model.predict(smallimage)
+                                self.all_max_activations[inputtime] = self.activations
            
     def VizualizeActivations(self):
         
@@ -250,9 +257,12 @@ class visualize_activations(object):
         self._draw_boxes()
         
         self.viewer.add_image(self.image, name= 'Image', blending= 'additive' )
-        for count, activation in enumerate(self.activations):
-            
-             max_activation = np.sum(activation, axis = -1)
-             max_activation = normalizeFloatZeroOne(max_activation, 1, 99.8, dtype = self.dtype)             
-             self.viewer.add_image(max_activation, name= 'Activation' + str(count), blending= 'additive', colormap='inferno' )
+        for (k,v) in self.all_max_activations.items():
+            time = k
+            activations = v
+            for count, activation in enumerate(activations):
+                
+                max_activation = np.sum(activation, axis = -1)
+                max_activation = normalizeFloatZeroOne(max_activation, 1, 99.8, dtype = self.dtype)             
+                self.viewer.add_image(max_activation, name= 'Activation_count' + str(count) + 'time_' + str(time), blending= 'additive', colormap='inferno' )
         napari.run()
