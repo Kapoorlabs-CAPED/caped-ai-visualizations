@@ -239,7 +239,7 @@ class visualize_activations(object):
              
             self.image = tf.reshape(self.image, (self.image.shape[0], self.image.shape[2], self.image.shape[3],self.image.shape[4], self.image.shape[1]))
                  
-        self.activations = self.activation_model.predict(self.smallimage)
+        self.activations = self.activation_model.predict(self.image)
            
     def VizualizeActivations(self):
         
