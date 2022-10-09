@@ -102,21 +102,25 @@ class visualize_activations(object):
             self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1])  
             self.yololoss = volume_yolo_loss(self.categories, self.gridx, self.gridy, self.gridz, self.nboxes,
                                             self.box_vector, self.entropy)
+            self.model = NEATVollNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
         
         if self.oneat_tresnet:
             self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
             self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
                                                         self.entropy)
+            self.model = NEATTResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
         
         if self.oneat_lrnet:
             self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
             self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes,
                                           self.box_vector, self.entropy)
+            self.model = NEATLRNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
 
         if self.oneat_resnet:
             self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
             self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
                                                         self.entropy)
+            self.model = NEATResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
 
         elif self.voll_starnet_2D:
                 if len(self.image.shape) == 4:
@@ -157,7 +161,6 @@ class visualize_activations(object):
         viz_box = VisualizeBoxes(viewer = self.viewer, key_categories = self.key_categories, event_threshold = self.event_threshold)
         
         if self.oneat_vollnet:
-             self.model = NEATVollNet(None, model_dir = self.model_dir, model_name = self.model_name, catconfig = self.catconfig, cordconfig = self.cordconfig)
              marker_tree =  self.model.get_markers(self.imagename, self.segdir)
                                    
              self.model.predict(self.imagename,
@@ -170,7 +173,6 @@ class visualize_activations(object):
              viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes)
              
         if self.oneat_lrnet:
-            self.model = NEATLRNet(None, model_dir = self.model_dir, model_name = self.model_name, catconfig = self.catconfig, cordconfig = self.cordconfig)     
             marker_tree =  self.model.get_markers(self.imagename, 
                                                 self.segdir,
                                                 start_project_mid = self.start_project_mid,
@@ -188,7 +190,6 @@ class visualize_activations(object):
             viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
             
         if self.oneat_tresnet:
-            self.model = NEATTResNet(None, model_dir = self.model_dir, model_name = self.model_name, catconfig = self.catconfig, cordconfig = self.cordconfig)    
             marker_tree = self.model.get_markers( self.imagename, 
                                                   self.segdir, 
                                                   start_project_mid = self.start_project_mid,
@@ -205,7 +206,6 @@ class visualize_activations(object):
             viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
             
         if self.oneat_resnet:
-            self.model =  NEATResNet(None, model_dir = self.model_dir, model_name = self.model_name, catconfig = self.catconfig, cordconfig = self.cordconfig)       
             
             self.model.predict(self.imagename,
                                event_threshold = self.event_threshold,
