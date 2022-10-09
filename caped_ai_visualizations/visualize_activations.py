@@ -17,15 +17,14 @@ import napari
 from .visualize_action_volume_boxes import VisualizeBoxes
 class visualize_activations(object):
     
-    def __init__(self, viewer: napari.Viewer, config: dict, catconfig: dict, cordconfig: dict, model_dir: str, model_name: str, imagename: str,
+    def __init__(self,  catconfig: dict, cordconfig: dict, model_dir: str, model_name: str, imagename: str,
                  segdir = None, oneat_vollnet = False, start_project_mid = 4, end_project_mid = 1,
                  oneat_lrnet = False, oneat_tresnet = False, oneat_resnet = False, voll_starnet_2D = False,
                  voll_starnet_3D = False, voll_unet = False, voll_care = False, layer_viz_start = None,
                  event_threshold = 0.9, event_confidence = 0.9, nms_function = 'iou',
                  layer_viz_end = None, dtype = np.uint8, n_tiles = (1,1,1), normalize = True):
         
-        self.viewer= viewer
-        self.config = config 
+        self.viewer = napari.Viewer()
         self.model_dir = model_dir 
         self.model_name = model_name
         self.imagename = imagename 
@@ -56,7 +55,7 @@ class visualize_activations(object):
         self.image = imread(imagename).astype(self.dtype)
         self.viewer = napari.Viewer()   
         self.all_max_activations = []
-        if self.oneat_vollnet or self.oneat_lstmnet or self.oneat_cnnnet or self.oneat_staticnet: 
+        if self.oneat_vollnet or self.oneat_lrnet or self.oneat_tresnet or self.oneat_resnet: 
                 self.config = load_json(os.path.join(self.model_dir, self.model_name) + '_Parameter.json')
                 
                 self.box_vector = self.config['box_vector']
