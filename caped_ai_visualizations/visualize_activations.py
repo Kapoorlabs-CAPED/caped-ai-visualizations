@@ -165,6 +165,7 @@ class visualize_activations(object):
         viz_box = VisualizeBoxes(viewer = self.viewer, key_categories = self.key_categories, event_threshold = self.event_threshold)
         
         if self.oneat_vollnet:
+             self.model = NEATVollNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
              marker_tree =  self.model.get_markers(self.imagename, self.segdir)
                                    
              self.model.predict(self.imagename,
@@ -177,6 +178,7 @@ class visualize_activations(object):
              viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes)
              
         if self.oneat_lrnet:
+            self.model = NEATLRNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
             marker_tree =  self.model.get_markers(self.imagename, 
                                                 self.segdir,
                                                 start_project_mid = self.start_project_mid,
@@ -194,6 +196,7 @@ class visualize_activations(object):
             viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
             
         if self.oneat_tresnet:
+            self.model = NEATTResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
             marker_tree = self.model.get_markers( self.imagename, 
                                                   self.segdir, 
                                                   start_project_mid = self.start_project_mid,
@@ -211,6 +214,7 @@ class visualize_activations(object):
             
         if self.oneat_resnet:
             
+            self.model = NEATResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
             self.model.predict(self.imagename,
                                event_threshold = self.event_threshold,
                                event_confidence = self.event_confidence,
