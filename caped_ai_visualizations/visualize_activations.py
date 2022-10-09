@@ -167,7 +167,7 @@ class visualize_activations(object):
         if self.oneat_vollnet:
              self.model = NEATVollNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
              marker_tree =  self.model.get_markers(self.imagename, self.segdir)
-                                   
+             print(dir(self.model))
              self.model.predict(self.imagename,
                            n_tiles = self.n_tiles, 
                            event_threshold = self.event_threshold, 
