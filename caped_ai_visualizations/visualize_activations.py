@@ -102,25 +102,29 @@ class visualize_activations(object):
             self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1])  
             self.yololoss = volume_yolo_loss(self.categories, self.gridx, self.gridy, self.gridz, self.nboxes,
                                             self.box_vector, self.entropy)
-            self.model = NEATVollNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            self.model = load_model(os.path.join(self.model_dir, self.model_name) + '.h5',
+                                custom_objects={'loss': volume_yolo_loss, 'Concat': Concat})
         
         if self.oneat_tresnet:
             self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
             self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
                                                         self.entropy)
-            self.model = NEATTResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            self.model = load_model(os.path.join(self.model_dir, self.model_name) + '.h5',
+                                custom_objects={'loss': static_yolo_loss, 'Concat': Concat})
         
         if self.oneat_lrnet:
             self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
-            self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes,
+            self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, 1, self.nboxes,
                                           self.box_vector, self.entropy)
-            self.model = NEATLRNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            self.model = load_model(os.path.join(self.model_dir, self.model_name) + '.h5',
+                                custom_objects={'loss': dynamic_yolo_loss, 'Concat': Concat})
 
         if self.oneat_resnet:
             self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
             self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
                                                         self.entropy)
-            self.model = NEATResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            self.model = load_model(os.path.join(self.model_dir, self.model_name) + '.h5',
+                                custom_objects={'loss': static_yolo_loss, 'Concat': Concat})
 
         elif self.voll_starnet_2D:
                 if len(self.image.shape) == 4:
