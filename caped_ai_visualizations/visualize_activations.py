@@ -94,6 +94,9 @@ class visualize_activations(object):
         
     def _load_model_loss(self):
         
+        
+        self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )
+        
         if self.normalize: 
             self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
         self.image = np.expand_dims(self.image, 0)    
@@ -168,7 +171,6 @@ class visualize_activations(object):
         if self.oneat_vollnet:
              self.model = NEATVollNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
              marker_tree =  self.model.get_markers(self.imagename, self.segdir)
-             print(dir(self.model))
              self.model.predict(self.imagename,
                            n_tiles = self.n_tiles, 
                            event_threshold = self.event_threshold, 
@@ -256,13 +258,12 @@ class visualize_activations(object):
         self._activations_predictions()
         self._draw_boxes()
         
-        self.viewer.add_image(self.image.astype('uint16'), name= 'Image', blending= 'additive' )
+        
         for (k,v) in self.all_max_activations.items():
             time = k
             activations = v
             for count, activation in enumerate(activations):
-                activation = np.array(activation).astype('uint16')
                 max_activation = np.sum(activation, axis = -1)
                 max_activation = normalizeFloatZeroOne(max_activation, 1, 99.8, dtype = self.dtype)             
-                self.viewer.add_image(max_activation, name= 'Activation_count' + str(count) + 'time_' + str(time), blending= 'additive', colormap='inferno' )
+                self.viewer.add_image(max_activation.astype('float32'), name= 'Activation_count' + str(count) + 'time_' + str(time), blending= 'additive', colormap='inferno' )
         napari.run()
