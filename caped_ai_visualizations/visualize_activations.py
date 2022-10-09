@@ -223,13 +223,8 @@ class visualize_activations(object):
         if self.layer_viz_start is None:
             self.layer_viz_start = 0 
         if self.layer_viz_end is None:
-            self.layer_viz_end = len(self.activations)
+            self.layer_viz_end = -1
                 
-        if self.layer_viz_start < 0:
-             self.layer_viz_start = len(self.activations) + self.layer_viz_start    
-        if self.layer_viz_end < 0:
-             self.layer_viz_end = len(self.activations) + self.layer_viz_end
-         
             
         layer_outputs = [layer.output for layer in self.model.layers[self.layer_viz_start:self.layer_viz_end]]
         self.activation_model = models.Model(inputs = self.model.input, outputs=layer_outputs)   
