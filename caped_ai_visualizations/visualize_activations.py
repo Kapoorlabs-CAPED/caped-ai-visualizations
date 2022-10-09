@@ -261,7 +261,7 @@ class visualize_activations(object):
             time = k
             activations = v
             for count, activation in enumerate(activations):
-                
+                activation = np.array(activation).astype('uint16')
                 max_activation = np.sum(activation, axis = -1)
                 max_activation = normalizeFloatZeroOne(max_activation, 1, 99.8, dtype = self.dtype)             
                 self.viewer.add_image(max_activation, name= 'Activation_count' + str(count) + 'time_' + str(time), blending= 'additive', colormap='inferno' )
