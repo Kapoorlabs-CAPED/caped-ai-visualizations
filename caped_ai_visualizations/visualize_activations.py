@@ -240,7 +240,7 @@ class visualize_activations(object):
          
         if self.oneat_vollnet:
              
-            self.image = tf.reshape(self.image, (self.image.shape[0], self.image.shape[2], self.image.shape[3],self.image.shape[4], self.image.shape[1]))
+            self.image = np.reshape(self.image, (self.image.shape[0], self.image.shape[2], self.image.shape[3],self.image.shape[4], self.image.shape[1]))
                  
         for inputtime in (range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0] - self.imaget and inputtime > int(self.imaget)//2:
@@ -256,7 +256,7 @@ class visualize_activations(object):
         self._activations_predictions()
         self._draw_boxes()
         
-        self.viewer.add_image(self.image, name= 'Image', blending= 'additive' )
+        self.viewer.add_image(self.image.astype('uint16'), name= 'Image', blending= 'additive' )
         for (k,v) in self.all_max_activations.items():
             time = k
             activations = v
