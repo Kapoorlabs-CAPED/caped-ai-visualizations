@@ -11,7 +11,6 @@ from oneat.NEATUtils.utils import load_json, normalizeFloatZeroOne
 from keras import models 
 from keras.models import load_model
 from tifffile import imread
-import napari 
 from oneat.NEATModels.nets import Concat
 import tensorflow as tf
 import napari
@@ -54,7 +53,6 @@ class visualize_activations(object):
         self.categories = len(self.catconfig)
         self.key_categories = self.catconfig
         self.image = imread(imagename).astype(self.dtype)
-        self.viewer = napari.Viewer()   
         self.all_max_activations = {}
         if self.oneat_vollnet or self.oneat_lrnet or self.oneat_tresnet or self.oneat_resnet: 
                 self.config = load_json(os.path.join(self.model_dir, self.model_name) + '_Parameter.json')
