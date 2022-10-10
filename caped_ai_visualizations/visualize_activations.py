@@ -207,18 +207,15 @@ class visualize_activations(object):
              viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes)
              
         if self.oneat_lrnet:
-            self.model = NEATLRNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
             
             viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
             
         if self.oneat_tresnet:
-            self.model = NEATTResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
             
             viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
             
         if self.oneat_resnet:
             
-            self.model = NEATResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
             
             viz_box.create_area_boxes(iou_classedboxes = self.model.iou_classedboxes)           
               

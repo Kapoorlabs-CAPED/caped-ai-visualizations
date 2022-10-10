@@ -98,7 +98,7 @@ class VisualizeBoxes(object):
                         
                         if score > self.event_threshold:
                                 self.event_locations.append([int(tcenter),int(zcenter), int(ycenter), int(xcenter)])   
-                        
+                                print(self.event_locations)
                                 if int(tcenter) in self.event_locations_dict.keys():
                                                 current_list = self.event_locations_dict[int(tcenter)]
                                                 current_list.append([int(zcenter),int(ycenter), int(xcenter)])
