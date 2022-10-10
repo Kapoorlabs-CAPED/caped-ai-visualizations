@@ -248,7 +248,7 @@ class visualize_activations(object):
                                 self.activations = self.activation_model.predict(smallimage)
                                 self.all_max_activations[inputtime] = self.activations
            
-        
+    def VizualizeActivations(self):    
         print('loading model and losses, running prediction')
         self._load_model_loss()
         print('prediction done, creating boxes')
