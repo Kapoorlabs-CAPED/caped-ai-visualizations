@@ -104,81 +104,39 @@ class visualize_activations(object):
             self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1])  
             self.yololoss = volume_yolo_loss(self.categories, self.gridx, self.gridy, self.gridz, self.nboxes,
                                             self.box_vector, self.entropy)
-            self.model = load_model(os.path.join(self.model_dir, self.model_name) + '.h5',
-                                custom_objects={'loss': volume_yolo_loss, 'Concat': Concat})
-        
-        if self.oneat_tresnet:
-            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
-            self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
-                                                        self.entropy)
-            self.model = load_model(os.path.join(self.model_dir, self.model_name) + '.h5',
-                                custom_objects={'loss': static_yolo_loss, 'Concat': Concat})
-        
-        if self.oneat_lrnet:
-            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
-            self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, 1, self.nboxes,
-                                          self.box_vector, self.entropy)
-            self.model = load_model(os.path.join(self.model_dir, self.model_name) + '.h5',
-                                custom_objects={'loss': dynamic_yolo_loss, 'Concat': Concat})
-
-        if self.oneat_resnet:
-            self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
-            self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
-                                                        self.entropy)
-            self.model = load_model(os.path.join(self.model_dir, self.model_name) + '.h5',
-                                custom_objects={'loss': static_yolo_loss, 'Concat': Concat})
-
-        elif self.voll_starnet_2D:
-                if len(self.image.shape) == 4:
-                    self.image = self.image[0,0,:,:]
-                if len(self.image.shape) == 3:
-                    self.image = self.image[0,:,:]     
-                self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
-                self.model =  StarDist2D(None, name=self.model_name, basedir=self.model_dir)._build()
-                self.prediction_star = self.model.predict(self.image)         
-        elif self.voll_starnet_3D:
-                if len(self.image.shape) == 4:
-                    self.image = self.image[0,:,:,:]
-                self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
-                self.model =  StarDist3D(None, name=self.model_name, basedir=self.model_dir)._build()
-                self.prediction_star = self.model.predict(self.image)     
-        elif self.voll_unet:
-                if len(self.image.shape) == 4:
-                    self.image = self.image[0,:,:,:]
-                if len(self.image.shape) >=3:
-                     self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
-                else:
-                     self.pad_width = (self.image.shape[-2], self.image.shape[-1])      
-                self.model =  UNET(None, name=self.model_name, basedir=self.model_dir)._build()  
-                self.prediction_unet = self.model.predict(self.image)
-        elif self.voll_care:
-                if len(self.image.shape) == 4:
-                    self.image = self.image[0,:,:,:]
-                if len(self.image.shape) >=3:
-                     self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
-                else:
-                     self.pad_width = (self.image.shape[-2], self.image.shape[-1])
-                self.model =  CARE(None, name=self.model_name, basedir=self.model_dir)._build()
-                self.prediction_care = self.model.predict(self.image)
-                
-                
-    def _draw_boxes(self):    
-        
-        viz_box = VisualizeBoxes(viewer = self.viewer, key_categories = self.key_categories, event_threshold = self.event_threshold)
-        
-        if self.oneat_vollnet:
-             self.model = NEATVollNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
-             marker_tree =  self.model.get_markers(self.imagename, self.segdir)
-             self.model.predict(self.imagename,
+            self.model = NEATVollNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            marker_tree =  self.model.get_markers(self.imagename, self.segdir)
+            self.model.predict(self.imagename,
                            n_tiles = self.n_tiles, 
                            event_threshold = self.event_threshold, 
                            event_confidence = self.event_confidence,
                            marker_tree = marker_tree, 
                            nms_function = self.nms_function,
                            normalize = self.normalize)
-             viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes)
-             
+        
+        if self.oneat_tresnet:
+            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+            self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
+                                                        self.entropy)
+            self.model = NEATTResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            marker_tree = self.model.get_markers( self.imagename, 
+                                                  self.segdir, 
+                                                  start_project_mid = self.start_project_mid,
+                                                  end_project_mid = self.end_project_mid)
+            self.model.predict(self.imagename,
+                                n_tiles = self.n_tiles,
+                                event_threshold = self.event_threshold,
+                                event_confidence = self.event_confidence,
+                                marker_tree = marker_tree,
+                                nms_function = self.nms_function,
+                                stert_project_mid = self.start_project_mid,
+                                end_project_mid = self.end_project_mid,
+                                normalze = self.normalize)
+        
         if self.oneat_lrnet:
+            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+            self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, 1, self.nboxes,
+                                          self.box_vector, self.entropy)
             self.model = NEATLRNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
             marker_tree =  self.model.get_markers(self.imagename, 
                                                 self.segdir,
@@ -194,33 +152,74 @@ class visualize_activations(object):
                                start_project_mid = self.start_project_mid,
                                end_project_mid = self.end_project_mid,
                                normalize = self.normalize)
-            viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
-            
-        if self.oneat_tresnet:
-            self.model = NEATTResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
-            marker_tree = self.model.get_markers( self.imagename, 
-                                                  self.segdir, 
-                                                  start_project_mid = self.start_project_mid,
-                                                  end_project_mid = self.end_project_mid)
-            self.model.predict(self.imagename,
-                                n_tiles = self.n_tiles,
-                                event_threshold = self.event_threshold,
-                                event_confidence = self.event_confidence,
-                                marker_tree = marker_tree,
-                                nms_function = self.nms_function,
-                                stert_project_mid = self.start_project_mid,
-                                end_project_mid = self.end_project_mid,
-                                normalze = self.normalize)
-            viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
-            
+
         if self.oneat_resnet:
-            
+            self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
+            self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
+                                                        self.entropy)
             self.model = NEATResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
             self.model.predict(self.imagename,
                                event_threshold = self.event_threshold,
                                event_confidence = self.event_confidence,
                                n_tiles = self.n_tiles
                                )
+     
+        elif self.voll_starnet_2D:
+                if len(self.image.shape) == 4:
+                    self.image = self.image[0,0,:,:]
+                if len(self.image.shape) == 3:
+                    self.image = self.image[0,:,:]     
+                self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
+                self.model =  StarDist2D(None, name=self.model_name, basedir=self.model_dir)
+                self.prediction_star = self.model.predict(self.image)         
+        elif self.voll_starnet_3D:
+                if len(self.image.shape) == 4:
+                    self.image = self.image[0,:,:,:]
+                self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+                self.model =  StarDist3D(None, name=self.model_name, basedir=self.model_dir)
+                self.prediction_star = self.model.predict(self.image)     
+        elif self.voll_unet:
+                if len(self.image.shape) == 4:
+                    self.image = self.image[0,:,:,:]
+                if len(self.image.shape) >=3:
+                     self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+                else:
+                     self.pad_width = (self.image.shape[-2], self.image.shape[-1])      
+                self.model =  UNET(None, name=self.model_name, basedir=self.model_dir)  
+                self.prediction_unet = self.model.predict(self.image)
+        elif self.voll_care:
+                if len(self.image.shape) == 4:
+                    self.image = self.image[0,:,:,:]
+                if len(self.image.shape) >=3:
+                     self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
+                else:
+                     self.pad_width = (self.image.shape[-2], self.image.shape[-1])
+                self.model =  CARE(None, name=self.model_name, basedir=self.model_dir)
+                self.prediction_care = self.model.predict(self.image)
+                
+                
+    def _draw_boxes(self):    
+        
+        viz_box = VisualizeBoxes(viewer = self.viewer, key_categories = self.key_categories, event_threshold = self.event_threshold)
+        
+        if self.oneat_vollnet:
+             
+             viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes)
+             
+        if self.oneat_lrnet:
+            self.model = NEATLRNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            
+            viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
+            
+        if self.oneat_tresnet:
+            self.model = NEATTResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            
+            viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
+            
+        if self.oneat_resnet:
+            
+            self.model = NEATResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            
             viz_box.create_area_boxes(iou_classedboxes = self.model.iou_classedboxes)           
               
     
@@ -234,7 +233,7 @@ class visualize_activations(object):
         if self.layer_viz_end is None:
             self.layer_viz_end = -1
                 
-            
+        self.model = self.model._build()    
         layer_outputs = [layer.output for layer in self.model.layers[self.layer_viz_start:self.layer_viz_end]]
         self.activation_model = models.Model(inputs = self.model.input, outputs=layer_outputs)   
          
@@ -253,8 +252,9 @@ class visualize_activations(object):
     def VizualizeActivations(self):
         
         self._load_model_loss()
-        self._activations_predictions()
         self._draw_boxes()
+        self._activations_predictions()
+        
         
         
         for (k,v) in self.all_max_activations.items():
