@@ -75,9 +75,8 @@ class VisualizeBoxes(object):
         for (event_name, event_label) in self.key_categories.items():
             
             if event_label > 0:
-
+                    print(self.iou_classedboxes)
                     iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                    print(iou_current_event_boxes)
                     iou_current_event_boxes = sorted(iou_current_event_boxes, key=lambda x: x[event_name], reverse=True)
                     for iou_current_event_box in iou_current_event_boxes:
                         xcenter = iou_current_event_box['xcenter'] 
