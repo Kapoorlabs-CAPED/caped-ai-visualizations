@@ -112,7 +112,8 @@ class visualize_activations(object):
                            event_confidence = self.event_confidence,
                            marker_tree = marker_tree, 
                            nms_function = self.nms_function,
-                           normalize = self.normalize)
+                           normalize = self.normalize, 
+                           activations = True)
         
         if self.oneat_tresnet:
             self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
@@ -131,7 +132,8 @@ class visualize_activations(object):
                                 nms_function = self.nms_function,
                                 stert_project_mid = self.start_project_mid,
                                 end_project_mid = self.end_project_mid,
-                                normalze = self.normalize)
+                                normalze = self.normalize, 
+                                activations = True)
         
         if self.oneat_lrnet:
             self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
@@ -151,7 +153,8 @@ class visualize_activations(object):
                                nms_function = self.nms_function,
                                start_project_mid = self.start_project_mid,
                                end_project_mid = self.end_project_mid,
-                               normalize = self.normalize)
+                               normalize = self.normalize, 
+                               activations = True)
 
         if self.oneat_resnet:
             self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
@@ -161,7 +164,8 @@ class visualize_activations(object):
             self.model.predict(self.imagename,
                                event_threshold = self.event_threshold,
                                event_confidence = self.event_confidence,
-                               n_tiles = self.n_tiles
+                               n_tiles = self.n_tiles, 
+                               activations = True
                                )
      
         elif self.voll_starnet_2D:
@@ -204,19 +208,19 @@ class visualize_activations(object):
         
         if self.oneat_vollnet:
              
-             viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes)
+             viz_box.create_volume_boxes(iou_classedboxes = self.model.all_iou_classedboxes)
              
         if self.oneat_lrnet:
             
-            viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
+            viz_box.create_volume_boxes(iou_classedboxes = self.model.all_iou_classedboxes, volumetric = False, shape = self.model.image.shape)
             
         if self.oneat_tresnet:
             
-            viz_box.create_volume_boxes(iou_classedboxes = self.model.iou_classedboxes, volumetric = False, shape = self.model.image.shape)
+            viz_box.create_volume_boxes(iou_classedboxes = self.model.all_iou_classedboxes, volumetric = False, shape = self.model.image.shape)
             
         if self.oneat_resnet:
             
-            viz_box.create_area_boxes(iou_classedboxes = self.model.iou_classedboxes)           
+            viz_box.create_area_boxes(iou_classedboxes = self.model.all_iou_classedboxes)           
               
                 
                 
@@ -244,7 +248,6 @@ class visualize_activations(object):
                                 self.activations = self.activation_model.predict(smallimage)
                                 self.all_max_activations[inputtime] = self.activations
            
-    def VizualizeActivations(self):
         
         print('loading model and losses, running prediction')
         self._load_model_loss()
