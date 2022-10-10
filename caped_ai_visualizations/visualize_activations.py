@@ -246,8 +246,11 @@ class visualize_activations(object):
            
     def VizualizeActivations(self):
         
+        print('loading model and losses, running prediction')
         self._load_model_loss()
+        print('prediction done, creating boxes')
         self._draw_boxes()
+        print('boxes done, creating activation maps')
         self._activations_predictions()
         
         
