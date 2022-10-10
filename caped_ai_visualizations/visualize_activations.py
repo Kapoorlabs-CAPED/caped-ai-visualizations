@@ -216,10 +216,8 @@ class visualize_activations(object):
             
         if self.oneat_resnet:
             
-            
             viz_box.create_area_boxes(iou_classedboxes = self.model.iou_classedboxes)           
               
-    
                 
                 
     def _activations_predictions(self):
