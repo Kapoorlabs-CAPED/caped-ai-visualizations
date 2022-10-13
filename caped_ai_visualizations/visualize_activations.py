@@ -17,7 +17,7 @@ import napari
 from .visualize_action_volume_boxes import VisualizeBoxes
 class visualize_activations(object):
     
-    def __init__(self,  catconfig: dict, cordconfig: dict, model_dir: str, model_name: str, imagename: str,
+    def __init__(self,  catconfig: dict, cordconfig: dict, model_dir: str,  imagename: str, model_name = None,
                  segdir = None, visualize_point = None, oneat_vollnet = False, start_project_mid = 4, end_project_mid = 1,
                  oneat_lrnet = False, oneat_tresnet = False, oneat_resnet = False, voll_starnet_2D = False,
                  voll_starnet_3D = False, voll_unet = False, voll_care = False, layer_viz_start = None,
@@ -26,8 +26,8 @@ class visualize_activations(object):
         
         self.viewer = napari.Viewer()
         self.model_dir = model_dir 
-        self.model_name = model_name
         self.imagename = imagename 
+        self.model_name = model_name
         self.segdir = segdir
         self.start_project_mid = start_project_mid
         self.end_project_mid = end_project_mid
@@ -56,7 +56,7 @@ class visualize_activations(object):
         self.visualize_point = visualize_point
         self.all_max_activations = {}
         if self.oneat_vollnet or self.oneat_lrnet or self.oneat_tresnet or self.oneat_resnet: 
-                self.config = load_json(os.path.join(self.model_dir, self.model_name) + '_Parameter.json')
+                self.config = load_json(os.path.join(self.model_dir, 'parameters.json'))
                 
                 self.box_vector = self.config['box_vector']
                 self.show = self.config['show']
@@ -105,7 +105,7 @@ class visualize_activations(object):
             self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1])  
             self.yololoss = volume_yolo_loss(self.categories, self.gridx, self.gridy, self.gridz, self.nboxes,
                                             self.box_vector, self.entropy)
-            self.model = NEATVollNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            self.model = NEATVollNet(None, self.model_dir, self.catconfig, self.cordconfig)
             marker_tree =  self.model.get_markers(self.imagename, self.segdir)
             self.model.predict(self.imagename,
                            n_tiles = self.n_tiles, 
@@ -120,7 +120,7 @@ class visualize_activations(object):
             self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
             self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
                                                         self.entropy)
-            self.model = NEATTResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            self.model = NEATTResNet(None, self.model_dir, self.catconfig, self.cordconfig)
             marker_tree = self.model.get_markers( self.imagename, 
                                                   self.segdir, 
                                                   start_project_mid = self.start_project_mid,
@@ -140,7 +140,7 @@ class visualize_activations(object):
             self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
             self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, 1, self.nboxes,
                                           self.box_vector, self.entropy)
-            self.model = NEATLRNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            self.model = NEATLRNet(None, self.model_dir,self.catconfig, self.cordconfig)
             marker_tree =  self.model.get_markers(self.imagename, 
                                                 self.segdir,
                                                 start_project_mid = self.start_project_mid,
@@ -161,7 +161,7 @@ class visualize_activations(object):
             self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
             self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
                                                         self.entropy)
-            self.model = NEATResNet(None, self.model_dir , self.model_name, self.catconfig, self.cordconfig)
+            self.model = NEATResNet(None, self.model_dir ,  self.catconfig, self.cordconfig)
             self.model.predict(self.imagename,
                                event_threshold = self.event_threshold,
                                event_confidence = self.event_confidence,
