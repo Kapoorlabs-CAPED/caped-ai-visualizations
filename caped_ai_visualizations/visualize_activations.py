@@ -267,7 +267,7 @@ class visualize_activations(object):
                 
             print(self.image.shape, self.size_tminus, self.size_tplus, self.visualize_point)    
             smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, self.visualize_point)
-            print('before', smallimage.shape) 
+            smallimage = np.expand_dims(smallimage,0) 
             layer_outputs = [layer.output for layer in self.model.layers[self.layer_viz_start:self.layer_viz_end]]
             self.activation_model = models.Model(inputs = self.model.input, outputs=layer_outputs)   
              
@@ -276,8 +276,7 @@ class visualize_activations(object):
                 
                 smallimage = np.reshape(smallimage, (smallimage.shape[0], smallimage.shape[2], smallimage.shape[3],smallimage.shape[4], smallimage.shape[1]))
             
-            smallimage = np.expand_dims(smallimage,0)
-            print('after', smallimage.shape)
+            
             self.activations = self.activation_model.predict(smallimage)
             self.all_max_activations[self.visualize_point] = self.activations
            
