@@ -244,7 +244,7 @@ class visualize_activations(object):
             smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, self.visualize_point)
             layer_outputs = [layer.output for layer in self.model.layers[self.layer_viz_start:self.layer_viz_end]]
             self.activation_model = models.Model(inputs = self.model.input, outputs=layer_outputs)   
-            self.smallimage = np.expand_dims(self.smallimage,0) 
+            smallimage = np.expand_dims(smallimage,0) 
             if self.oneat_vollnet:
                 
                 smallimage = np.reshape(smallimage, (smallimage.shape[0], smallimage.shape[2], smallimage.shape[3],smallimage.shape[4], smallimage.shape[1]))
