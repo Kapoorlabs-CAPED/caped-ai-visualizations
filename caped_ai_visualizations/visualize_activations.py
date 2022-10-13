@@ -239,14 +239,16 @@ class visualize_activations(object):
         if self.visualize_point is not None:
             if self.visualize_point < self.size_tminus:
                 self.visualize_point = self.size_tminus + 1
+                
+                
             smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, self.visualize_point)
             layer_outputs = [layer.output for layer in self.model.layers[self.layer_viz_start:self.layer_viz_end]]
             self.activation_model = models.Model(inputs = self.model.input, outputs=layer_outputs)   
-            
+            self.smallimage = np.expand_dims(self.smallimage,0) 
             if self.oneat_vollnet:
                 
                 smallimage = np.reshape(smallimage, (smallimage.shape[0], smallimage.shape[2], smallimage.shape[3],smallimage.shape[4], smallimage.shape[1]))
-
+            
             self.activations = self.activation_model.predict(smallimage)
             self.all_max_activations[self.visualize_point] = self.activations
            
