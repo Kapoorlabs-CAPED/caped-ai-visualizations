@@ -52,7 +52,6 @@ class visualize_activations(object):
         self.key_cord = self.cordconfig
         self.categories = len(self.catconfig)
         self.key_categories = self.catconfig
-        self.image = imread(imagename).astype(self.dtype)
         self.visualize_point = visualize_point
         self.all_max_activations = {}
         if self.oneat_vollnet or self.oneat_lrnet or self.oneat_tresnet or self.oneat_resnet: 
@@ -94,14 +93,10 @@ class visualize_activations(object):
     def _load_model_loss(self):
         
         
-        self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )
         
-        if self.normalize: 
-            self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
             
         if self.oneat_vollnet: 
             
-            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1])  
             self.yololoss = volume_yolo_loss(self.categories, self.gridx, self.gridy, self.gridz, self.nboxes,
                                             self.box_vector, self.entropy)
             self.model = NEATVollNet(None, self.model_dir, self.catconfig, self.cordconfig)
@@ -114,9 +109,10 @@ class visualize_activations(object):
                            nms_function = self.nms_function,
                            normalize = self.normalize, 
                            activations = True)
+            self.image = self.model.image
+            self.viewer.add_image(self.image, name= 'Image', blending= 'additive' )
         
         if self.oneat_tresnet:
-            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
             self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
                                                         self.entropy)
             self.model = NEATTResNet(None, self.model_dir, self.catconfig, self.cordconfig)
@@ -134,9 +130,10 @@ class visualize_activations(object):
                                 end_project_mid = self.end_project_mid,
                                 normalze = self.normalize, 
                                 activations = True)
+            self.image = self.model.image
+            self.viewer.add_image(self.image, name= 'Image', blending= 'additive' )
         
         if self.oneat_lrnet:
-            self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
             self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, 1, self.nboxes,
                                           self.box_vector, self.entropy)
             self.model = NEATLRNet(None, self.model_dir,self.catconfig, self.cordconfig)
@@ -155,9 +152,10 @@ class visualize_activations(object):
                                end_project_mid = self.end_project_mid,
                                normalize = self.normalize, 
                                activations = True)
+            self.image = self.model.image
+            self.viewer.add_image(self.image, name= 'Image', blending= 'additive' )
 
         if self.oneat_resnet:
-            self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
             self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
                                                         self.entropy)
             self.model = NEATResNet(None, self.model_dir ,  self.catconfig, self.cordconfig)
@@ -167,8 +165,16 @@ class visualize_activations(object):
                                n_tiles = self.n_tiles, 
                                activations = True
                                )
+            self.image = self.model.image
+            self.viewer.add_image(self.image, name= 'Image', blending= 'additive' )
      
         elif self.voll_starnet_2D:
+            
+                self.image = imread(self.imagename)
+                self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )
+        
+                if self.normalize: 
+                    self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
                 if len(self.image.shape) == 4:
                     self.image = self.image[0,0,:,:]
                 if len(self.image.shape) == 3:
@@ -177,12 +183,25 @@ class visualize_activations(object):
                 self.model =  StarDist2D(None, name=self.model_name, basedir=self.model_dir)
                 self.prediction_star = self.model.predict(self.image)         
         elif self.voll_starnet_3D:
+            
+                self.image = imread(self.imagename)
+                self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )
+        
+                if self.normalize: 
+                    self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
                 if len(self.image.shape) == 4:
                     self.image = self.image[0,:,:,:]
                 self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
                 self.model =  StarDist3D(None, name=self.model_name, basedir=self.model_dir)
                 self.prediction_star = self.model.predict(self.image)     
         elif self.voll_unet:
+                 
+                self.image = imread(self.imagename) 
+                self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )
+        
+                if self.normalize: 
+                    self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
+                
                 if len(self.image.shape) == 4:
                     self.image = self.image[0,:,:,:]
                 if len(self.image.shape) >=3:
@@ -192,6 +211,13 @@ class visualize_activations(object):
                 self.model =  UNET(None, name=self.model_name, basedir=self.model_dir)  
                 self.prediction_unet = self.model.predict(self.image)
         elif self.voll_care:
+            
+                self.image = imread(self.imagename)
+                self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )
+        
+                if self.normalize: 
+                    self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
+            
                 if len(self.image.shape) == 4:
                     self.image = self.image[0,:,:,:]
                 if len(self.image.shape) >=3:
