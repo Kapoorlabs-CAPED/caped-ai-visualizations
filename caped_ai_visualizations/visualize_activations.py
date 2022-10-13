@@ -265,7 +265,7 @@ class visualize_activations(object):
             if self.visualize_point < self.size_tminus:
                 self.visualize_point = self.size_tminus + 1
                 
-            print(self.image.shape)    
+            print(self.image.shape, self.size_tminus, self.size_tplus, self.visualize_point)    
             smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, self.visualize_point)
             print('before', smallimage.shape) 
             layer_outputs = [layer.output for layer in self.model.layers[self.layer_viz_start:self.layer_viz_end]]
