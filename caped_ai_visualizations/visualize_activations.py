@@ -18,7 +18,7 @@ from .visualize_action_volume_boxes import VisualizeBoxes
 class visualize_activations(object):
     
     def __init__(self,  catconfig: dict, cordconfig: dict, model_dir: str, model_name: str, imagename: str,
-                 segdir = None, oneat_vollnet = False, start_project_mid = 4, end_project_mid = 1,
+                 segdir = None, visualize_point = None, oneat_vollnet = False, start_project_mid = 4, end_project_mid = 1,
                  oneat_lrnet = False, oneat_tresnet = False, oneat_resnet = False, voll_starnet_2D = False,
                  voll_starnet_3D = False, voll_unet = False, voll_care = False, layer_viz_start = None,
                  event_threshold = 0.9, event_confidence = 0.9, nms_function = 'iou',
@@ -53,6 +53,7 @@ class visualize_activations(object):
         self.categories = len(self.catconfig)
         self.key_categories = self.catconfig
         self.image = imread(imagename).astype(self.dtype)
+        self.visualize_point = visualize_point
         self.all_max_activations = {}
         if self.oneat_vollnet or self.oneat_lrnet or self.oneat_tresnet or self.oneat_resnet: 
                 self.config = load_json(os.path.join(self.model_dir, self.model_name) + '_Parameter.json')
@@ -226,27 +227,28 @@ class visualize_activations(object):
                 
     def _activations_predictions(self):
          
-         
+                
+        self.model = self.model._build()  
+        
+        self.max_activation_layer = len(self.model.layers)
         if self.layer_viz_start is None:
             self.layer_viz_start = 0 
         if self.layer_viz_end is None:
-            self.layer_viz_end = -1
+            self.layer_viz_end = self.max_activation_layer
+        
+        if self.visualize_point is not None:
+            if self.visualize_point < self.size_tminus:
+                self.visualize_point = self.size_tminus + 1
+            smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, self.visualize_point)
+            layer_outputs = [layer.output for layer in self.model.layers[self.layer_viz_start:self.layer_viz_end]]
+            self.activation_model = models.Model(inputs = self.model.input, outputs=layer_outputs)   
+            
+            if self.oneat_vollnet:
                 
-        self.model = self.model._build()    
-        layer_outputs = [layer.output for layer in self.model.layers[self.layer_viz_start:self.layer_viz_end]]
-        self.activation_model = models.Model(inputs = self.model.input, outputs=layer_outputs)   
-         
-        if self.oneat_vollnet:
-             
-            self.image = np.reshape(self.image, (self.image.shape[0], self.image.shape[2], self.image.shape[3],self.image.shape[4], self.image.shape[1]))
-                 
-        for inputtime in (range(0, self.image.shape[0])):
-                    if inputtime < self.image.shape[0] - self.imaget and inputtime > int(self.imaget)//2:
-                                count = count + 1
-                                      
-                                smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime)         
-                                self.activations = self.activation_model.predict(smallimage)
-                                self.all_max_activations[inputtime] = self.activations
+                smallimage = np.reshape(smallimage, (smallimage.shape[0], smallimage.shape[2], smallimage.shape[3],smallimage.shape[4], smallimage.shape[1]))
+
+            self.activations = self.activation_model.predict(smallimage)
+            self.all_max_activations[self.visualize_point] = self.activations
            
     def VizualizeActivations(self):    
         print('loading model and losses, running prediction')
@@ -263,6 +265,7 @@ class visualize_activations(object):
             activations = v
             for count, activation in enumerate(activations):
                 max_activation = np.sum(activation, axis = -1)
-                max_activation = normalizeFloatZeroOne(max_activation, 1, 99.8, dtype = self.dtype)             
+                max_activation = normalizeFloatZeroOne(max_activation, 1, 99.8, dtype = self.dtype)   
+                print('adding activations to Napari')          
                 self.viewer.add_image(max_activation.astype('float32'), name= 'Activation_count' + str(count) + 'time_' + str(time), blending= 'additive', colormap='inferno' )
         napari.run()
