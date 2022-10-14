@@ -322,7 +322,7 @@ class visualize_activations(object):
             time = k
             activations = v
             for count, activation in enumerate(activations):
-                max_activation = np.sum(activation, axis = -1)
+                max_activation = np.sum(activation, axis = -1)[0,:]
                 print(f'activation_function_shape: {max_activation.shape}')          
                 self.viewer.add_image(max_activation.astype('float32'), name= 'Activation_count' + str(count) + 'time_' + str(time), blending= 'additive', colormap='inferno' )
         napari.run()
@@ -339,7 +339,7 @@ class visualize_activations(object):
             time = k
             activations = v
             for count, activation in enumerate(activations):
-                max_activation = np.sum(activation, axis = -1)
+                max_activation = np.sum(activation, axis = -1)[0,:]
                 print(f'activation_function_shape: {max_activation.shape}')          
                 self.viewer.add_image(max_activation.astype('float32'), name= 'Activation_count' + str(count) + 'time_' + str(time), blending= 'additive', colormap='inferno' )
         napari.run()    
