@@ -291,7 +291,7 @@ class visualize_activations(object):
             if self.visualize_point < self.size_tminus:
                 self.visualize_point = self.size_tminus + 1
                 
-            print(self.image.shape, self.size_tminus, self.size_tplus, self.visualize_point)    
+            print(self.max_activation_layer)    
             smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, self.visualize_point)
             smallimage = np.expand_dims(smallimage,0) 
             layer_outputs = [layer.output for layer in self.model.layers[self.layer_viz_start:self.layer_viz_end]]
@@ -323,8 +323,7 @@ class visualize_activations(object):
             activations = v
             for count, activation in enumerate(activations):
                 max_activation = np.sum(activation, axis = -1)
-                max_activation = normalizeFloatZeroOne(max_activation, 1, 99.8, dtype = self.dtype)   
-                print('adding activations to Napari')          
+                print(f'activation_function_shape: {max_activation.shape}')          
                 self.viewer.add_image(max_activation.astype('float32'), name= 'Activation_count' + str(count) + 'time_' + str(time), blending= 'additive', colormap='inferno' )
         napari.run()
       
@@ -341,8 +340,7 @@ class visualize_activations(object):
             activations = v
             for count, activation in enumerate(activations):
                 max_activation = np.sum(activation, axis = -1)
-                max_activation = normalizeFloatZeroOne(max_activation, 1, 99.8, dtype = self.dtype)   
-                print('adding activations to Napari')          
+                print(f'activation_function_shape: {max_activation.shape}')          
                 self.viewer.add_image(max_activation.astype('float32'), name= 'Activation_count' + str(count) + 'time_' + str(time), blending= 'additive', colormap='inferno' )
         napari.run()    
       
