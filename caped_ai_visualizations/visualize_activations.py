@@ -112,7 +112,7 @@ class visualize_activations(object):
         
     def _load_model_loss(self):
             
-        self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )    
+            
             
         if self.oneat_vollnet: 
             
@@ -256,7 +256,9 @@ class visualize_activations(object):
                 
     def _draw_boxes(self):    
         
-        viz_box = VisualizeBoxes(viewer = self.viewer, key_categories = self.key_categories, event_threshold = self.event_threshold)
+        if isinstance(self.model, any(NEATVollNet, NEATTResNet, NEATLRNet, NEATResNet, NEATTResNet)):
+          
+           viz_box = VisualizeBoxes(viewer = self.viewer, key_categories = self.key_categories, event_threshold = self.event_threshold)
         
         if self.oneat_vollnet:
              
@@ -317,7 +319,7 @@ class visualize_activations(object):
         self._activations_predictions()
         
         
-        
+        self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )
         for (k,v) in self.all_max_activations.items():
             time = k
             activations = v
@@ -333,8 +335,10 @@ class visualize_activations(object):
         print('boxes done, creating activation maps')
         self._activations_predictions()
         
-        
-        
+        if self.visualize_point is not None:
+          self.viewer.add_image(self.image[self.visualize_point,:].astype('float32'), name= 'Image', blending= 'additive' )
+        else:
+          self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )   
         for (k,v) in self.all_max_activations.items():
             time = k
             activations = v
@@ -351,4 +355,5 @@ class visualize_activations(object):
         self._model_prediction()
         print('prediction done, creating boxes')
         self._draw_boxes()
+        self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )
         napari.run()    
