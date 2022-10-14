@@ -17,18 +17,38 @@ import napari
 from .visualize_action_volume_boxes import VisualizeBoxes
 class visualize_activations(object):
     
-    def __init__(self,  catconfig: dict, cordconfig: dict, model_dir: str,  imagename: str, model_name = None,
-                 segdir = None, visualize_point = None, oneat_vollnet = False, start_project_mid = 4, end_project_mid = 1,
-                 oneat_lrnet = False, oneat_tresnet = False, oneat_resnet = False, voll_starnet_2D = False,
-                 voll_starnet_3D = False, voll_unet = False, voll_care = False, layer_viz_start = None,
-                 event_threshold = 0.9, event_confidence = 0.9, nms_function = 'iou',
-                 layer_viz_end = None, dtype = np.uint8, n_tiles = (1,1,1), normalize = True):
+    def __init__(self,  
+                 catconfig: dict, 
+                 cordconfig: dict, 
+                 model_dir: str,  
+                 image: np.ndarray, 
+                 model_name: str = None,
+                 segimage: np.ndarray = None, 
+                 visualize_point: int = None, 
+                 oneat_vollnet: bool = False, 
+                 start_project_mid: int = 4, 
+                 end_project_mid: int = 1,
+                 oneat_lrnet: bool = False, 
+                 oneat_tresnet: bool = False, 
+                 oneat_resnet: bool = False, 
+                 voll_starnet_2D: bool = False,
+                 voll_starnet_3D: bool = False, 
+                 voll_unet: bool = False, 
+                 voll_care: bool = False, 
+                 layer_viz_start: int = None,
+                 event_threshold: float = 0.9, 
+                 event_confidence: float = 0.9, 
+                 nms_function: str = 'iou',
+                 layer_viz_end: int = None, 
+                 dtype: np.dtype = np.uint8, 
+                 n_tiles: tuple = (1,1,1), 
+                 normalize: bool = True):
         
         self.viewer = napari.Viewer()
         self.model_dir = model_dir 
-        self.imagename = imagename 
+        self.image = image
         self.model_name = model_name
-        self.segdir = segdir
+        self.segimage = segimage
         self.start_project_mid = start_project_mid
         self.end_project_mid = end_project_mid
         self.event_threshold = event_threshold 
@@ -91,87 +111,37 @@ class visualize_activations(object):
                     self.entropy = 'notbinary' 
         
     def _load_model_loss(self):
-        
-        
-        
+            
+        self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )    
             
         if self.oneat_vollnet: 
             
             self.yololoss = volume_yolo_loss(self.categories, self.gridx, self.gridy, self.gridz, self.nboxes,
                                             self.box_vector, self.entropy)
             self.model = NEATVollNet(None, self.model_dir, self.catconfig, self.cordconfig)
-            marker_tree =  self.model.get_markers(self.imagename, self.segdir)
-            self.model.predict(self.imagename,
-                           n_tiles = self.n_tiles, 
-                           event_threshold = self.event_threshold, 
-                           event_confidence = self.event_confidence,
-                           marker_tree = marker_tree, 
-                           nms_function = self.nms_function,
-                           normalize = self.normalize, 
-                           activations = True)
-            self.image = self.model.image
-            self.viewer.add_image(self.image, name= 'Image', blending= 'additive' )
+            
         
         if self.oneat_tresnet:
             self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
                                                         self.entropy)
             self.model = NEATTResNet(None, self.model_dir, self.catconfig, self.cordconfig)
-            marker_tree = self.model.get_markers( self.imagename, 
-                                                  self.segdir, 
-                                                  start_project_mid = self.start_project_mid,
-                                                  end_project_mid = self.end_project_mid)
-            self.model.predict(self.imagename,
-                                n_tiles = self.n_tiles,
-                                event_threshold = self.event_threshold,
-                                event_confidence = self.event_confidence,
-                                marker_tree = marker_tree,
-                                nms_function = self.nms_function,
-                                stert_project_mid = self.start_project_mid,
-                                end_project_mid = self.end_project_mid,
-                                normalze = self.normalize, 
-                                activations = True)
-            self.image = self.model.image
-            self.viewer.add_image(self.image, name= 'Image', blending= 'additive' )
+            
         
         if self.oneat_lrnet:
             self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, 1, self.nboxes,
                                           self.box_vector, self.entropy)
             self.model = NEATLRNet(None, self.model_dir,self.catconfig, self.cordconfig)
-            marker_tree =  self.model.get_markers(self.imagename, 
-                                                self.segdir,
-                                                start_project_mid = self.start_project_mid,
-                                                end_project_mid = self.end_project_mid,  
-                                                ) 
-            self.model.predict(self.imagename,
-                               n_tiles = self.n_tiles,
-                               event_threshold = self.event_threshold,
-                               event_confidence = self.event_confidence,
-                               marker_tree = marker_tree,
-                               nms_function = self.nms_function,
-                               start_project_mid = self.start_project_mid,
-                               end_project_mid = self.end_project_mid,
-                               normalize = self.normalize, 
-                               activations = True)
-            self.image = self.model.image
-            self.viewer.add_image(self.image, name= 'Image', blending= 'additive' )
+            
 
         if self.oneat_resnet:
             self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector,
                                                         self.entropy)
             self.model = NEATResNet(None, self.model_dir ,  self.catconfig, self.cordconfig)
-            self.model.predict(self.imagename,
-                               event_threshold = self.event_threshold,
-                               event_confidence = self.event_confidence,
-                               n_tiles = self.n_tiles, 
-                               activations = True
-                               )
-            self.image = self.model.image
-            self.viewer.add_image(self.image, name= 'Image', blending= 'additive' )
+            
      
         elif self.voll_starnet_2D:
             
-                self.image = imread(self.imagename)
-                self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )
+                
         
                 if self.normalize: 
                     self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
@@ -181,11 +151,8 @@ class visualize_activations(object):
                     self.image = self.image[0,:,:]     
                 self.pad_width = (self.image.shape[-2], self.image.shape[-1]) 
                 self.model =  StarDist2D(None, name=self.model_name, basedir=self.model_dir)
-                self.prediction_star = self.model.predict(self.image)         
         elif self.voll_starnet_3D:
             
-                self.image = imread(self.imagename)
-                self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )
         
                 if self.normalize: 
                     self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
@@ -193,11 +160,9 @@ class visualize_activations(object):
                     self.image = self.image[0,:,:,:]
                 self.pad_width = (self.image.shape[-3], self.image.shape[-2], self.image.shape[-1]) 
                 self.model =  StarDist3D(None, name=self.model_name, basedir=self.model_dir)
-                self.prediction_star = self.model.predict(self.image)     
+                     
         elif self.voll_unet:
                  
-                self.image = imread(self.imagename) 
-                self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )
         
                 if self.normalize: 
                     self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
@@ -209,11 +174,9 @@ class visualize_activations(object):
                 else:
                      self.pad_width = (self.image.shape[-2], self.image.shape[-1])      
                 self.model =  UNET(None, name=self.model_name, basedir=self.model_dir)  
-                self.prediction_unet = self.model.predict(self.image)
+                
         elif self.voll_care:
             
-                self.image = imread(self.imagename)
-                self.viewer.add_image(self.image.astype('float32'), name= 'Image', blending= 'additive' )
         
                 if self.normalize: 
                     self.image = normalizeFloatZeroOne(self.image, 1, 99.8, dtype = self.dtype)
@@ -225,8 +188,71 @@ class visualize_activations(object):
                 else:
                      self.pad_width = (self.image.shape[-2], self.image.shape[-1])
                 self.model =  CARE(None, name=self.model_name, basedir=self.model_dir)
-                self.prediction_care = self.model.predict(self.image)
                 
+                
+                
+    def _model_prediction(self):
+        
+        if isinstance(self.model, NEATVollNet):
+             #Load the prediction for VollNet
+             marker_tree =  self.model.get_markers(self.segimage)
+             self.model.predict(self.image,
+                           n_tiles = self.n_tiles, 
+                           event_threshold = self.event_threshold, 
+                           event_confidence = self.event_confidence,
+                           marker_tree = marker_tree, 
+                           nms_function = self.nms_function,
+                           normalize = self.normalize, 
+                           activations = True)
+        if isinstance(self.model, NEATLRNet):
+             #Load the prediction for LRNet
+             marker_tree =  self.model.get_markers(self.segimage,
+                                                start_project_mid = self.start_project_mid,
+                                                end_project_mid = self.end_project_mid,  
+                                                ) 
+             self.model.predict(self.image,
+                               n_tiles = self.n_tiles,
+                               event_threshold = self.event_threshold,
+                               event_confidence = self.event_confidence,
+                               marker_tree = marker_tree,
+                               nms_function = self.nms_function,
+                               start_project_mid = self.start_project_mid,
+                               end_project_mid = self.end_project_mid,
+                               normalize = self.normalize, 
+                               activations = True)
+        if isinstance(self.model, NEATTResNet):
+             #Load the prediction for TResNet  
+             marker_tree = self.model.get_markers( self.segimage, 
+                                                  start_project_mid = self.start_project_mid,
+                                                  end_project_mid = self.end_project_mid)
+             self.model.predict(self.image,
+                                n_tiles = self.n_tiles,
+                                event_threshold = self.event_threshold,
+                                event_confidence = self.event_confidence,
+                                marker_tree = marker_tree,
+                                nms_function = self.nms_function,
+                                stert_project_mid = self.start_project_mid,
+                                end_project_mid = self.end_project_mid,
+                                normalze = self.normalize, 
+                                activations = True)
+        if isinstance(self.model, NEATResNet):
+             #Load the prediction for ResNet
+             self.model.predict(self.image,
+                               event_threshold = self.event_threshold,
+                               event_confidence = self.event_confidence,
+                               n_tiles = self.n_tiles, 
+                               activations = True
+                               )
+        if isinstance(self.model, StarDist3D or StarDist2D):
+            #Load the prediction for StarDist3D
+            self.prediction_star = self.model.predict(self.image)
+        if isinstance(self.model, CARE):
+            #Load the prediction for CARE
+            self.prediction_care = self.model.predict(self.image)
+        if isinstance(self.model, UNET):
+            #Load the predicton for UNET
+            self.prediction_unet = self.model.predict(self.image)                                
+                        
                 
     def _draw_boxes(self):    
         
@@ -280,9 +306,11 @@ class visualize_activations(object):
             self.activations = self.activation_model.predict(smallimage)
             self.all_max_activations[self.visualize_point] = self.activations
            
-    def VizualizeActivations(self):    
-        print('loading model and losses, running prediction')
+    def VizualizePredictionsActivations(self):    
+        print('loading model and losses')
         self._load_model_loss()
+        print('running predictions')
+        self._model_prediction()
         print('prediction done, creating boxes')
         self._draw_boxes()
         print('boxes done, creating activation maps')
@@ -299,3 +327,30 @@ class visualize_activations(object):
                 print('adding activations to Napari')          
                 self.viewer.add_image(max_activation.astype('float32'), name= 'Activation_count' + str(count) + 'time_' + str(time), blending= 'additive', colormap='inferno' )
         napari.run()
+      
+    def VizualizeActivations(self):    
+        print('loading model and losses')
+        self._load_model_loss()
+        print('boxes done, creating activation maps')
+        self._activations_predictions()
+        
+        
+        
+        for (k,v) in self.all_max_activations.items():
+            time = k
+            activations = v
+            for count, activation in enumerate(activations):
+                max_activation = np.sum(activation, axis = -1)
+                max_activation = normalizeFloatZeroOne(max_activation, 1, 99.8, dtype = self.dtype)   
+                print('adding activations to Napari')          
+                self.viewer.add_image(max_activation.astype('float32'), name= 'Activation_count' + str(count) + 'time_' + str(time), blending= 'additive', colormap='inferno' )
+        napari.run()    
+      
+    def VizualizePredictions(self):    
+        print('loading model and losses')
+        self._load_model_loss()
+        print('running predictions')
+        self._model_prediction()
+        print('prediction done, creating boxes')
+        self._draw_boxes()
+        napari.run()    
